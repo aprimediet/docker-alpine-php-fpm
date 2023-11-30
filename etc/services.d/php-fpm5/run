@@ -1,0 +1,2 @@
+#!/command/execlineb -P
+php-fpm5 -F -R -c /etc/php5/php-fpm.conf

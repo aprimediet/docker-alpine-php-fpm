@@ -1,0 +1,11 @@
+ARG ALPINE_VERSION=3.16
+
+FROM aprimediet/php:fpm-8-alpine
+LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
+
+# INSTALL php5
+# RUN apk update && apk upgrade && \
+RUN apk add --update --no-cache \
+    php8-pdo php8-pdo_mysql php8-mysqli php8-mysqlnd
+
+EXPOSE 80
