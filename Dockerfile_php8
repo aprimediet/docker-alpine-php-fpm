@@ -3,6 +3,12 @@ ARG ALPINE_VERSION=3.16
 FROM aprimediet/alpine:${ALPINE_VERSION}
 LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
 
+# Add user and group www-data
+RUN mkdir /usr/www
+# RUN addgroup -g 1010 www-data
+RUN adduser -u 1010 -D -H -h /usr/www -G www-data www-data
+RUN adduser www-data tty
+
 # INSTALL php5
 # RUN apk update && apk upgrade && \
 RUN apk add --update --no-cache \
@@ -17,10 +23,8 @@ RUN apk add --update --no-cache \
 
 # COPY Configuration File
 RUN mkdir -p /var/run/php
-RUN mkdir -p /var/log/php8
-RUN touch /var/log/php8/error.log
-ADD ./etc/nginx /etc/nginx
-ADD ./etc/services.d/php-fpm8 /etc/services.d/php-fpm8
-ADD usr /usr
 
-EXPOSE 80
+ADD ./etc/php8 /etc/php8
+ADD ./etc/services.d/php-fpm82 /etc/services.d/php-fpm82
+
+EXPOSE 9000

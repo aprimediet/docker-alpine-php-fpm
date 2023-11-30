@@ -1,2 +1,2 @@
-#!/command/execlineb -P
-php-fpm8 -F -R -c /etc/php8/php-fpm.conf
+#!/command/with-contenv sh
+php-fpm8 -F -O -c /etc/php8/php-fpm.conf
