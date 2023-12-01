@@ -1,2 +1,0 @@
-#!/command/with-contenv sh
-php-fpm82 -F -O -c /etc/php82/php-fpm.conf

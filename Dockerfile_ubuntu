@@ -1,0 +1,60 @@
+ARG UBUNTU_VERSION=latest
+
+FROM aprimediet/ubuntu:${UBUNTU_VERSION}
+LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
+
+ARG PHP_VERSION=8.1
+
+ENV PHP_VERSION=${PHP_VERSION}
+ENV PHP_FPM_BIN=php-fpm${PHP_VERSION}
+
+WORKDIR /root
+
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y update && apt -y upgrade && apt -y install \
+    software-properties-common
+
+# ADD PPA TO INSTALL MULTIPLE PHP VERSIONS
+RUN add-apt-repository ppa:ondrej/php
+
+# INSTALL BASE DEPENDENCIES
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y install \
+    php${PHP_VERSION}-fpm php${PHP_VERSION}-cli php${PHP_VERSION}-common \
+    php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
+    php${PHP_VERSION}-cgi php${PHP_VERSION}-curl \
+    php${PHP_VERSION}-dba php${PHP_VERSION}-dev php${PHP_VERSION}-gd \
+    php${PHP_VERSION}-http php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
+    php${PHP_VERSION}-json php${PHP_VERSION}-mbstring php${PHP_VERSION}-memcache \
+    php${PHP_VERSION}-memcached php${PHP_VERSION}-pspell \
+    php${PHP_VERSION}-readline php${PHP_VERSION}-xml \
+    php${PHP_VERSION}-xmlrpc php${PHP_VERSION}-zip
+
+# INSTALL PACKAGES AND IGNORE ERRORS WHEN OCURRED
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y install \
+    php${PHP_VERSION}-autoload php${PHP_VERSION}-date php${PHP_VERSION}-monolog \
+    php${PHP_VERSION}-psr; exit 0
+
+# REMOVE CURRENT POOL FIRST
+RUN rm -rf /etc/php/${PHP_VERSION}/fpm/pool.d
+
+# COPY CONFIGURATION FILES
+ADD ./etc/php/fpm/php-fpm.conf /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
+ADD ./etc/php/fpm/pool.d /etc/php/fpm/pool.d 
+ADD ./etc/services.d/php-fpm /etc/services.d/php-fpm
+
+# CREATE SYMLINKS TO /usr/bin/php IN CASE IT IS NOT EXISTS
+RUN ln -ns /usr/bin/php${PHP_VERSION} /usr/bin/php; exit 0
+
+# DOWNLOAD AND INSTALL COMPOSER
+ADD https://getcomposer.org/installer ./composer-setup.php
+RUN php composer-setup.php && mv composer.phar /usr/local/bin/composer && rm -f ./composer-setup.php
+
+# CLEAN APT CACHES
+RUN apt -y clean
+
+# CREATE PHP RUN DIRECTORY
+RUN mkdir -p /var/run/php && mkdir -p /var/lib/php/session
+
+EXPOSE 9000

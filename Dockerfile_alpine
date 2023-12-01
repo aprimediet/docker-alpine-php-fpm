@@ -1,0 +1,65 @@
+# PHP 5.6 == 3.5
+# PHP 7.2 == 3.9
+# PHP 7.3 == 3.10
+# PHP 7.4 == 3.13
+# PHP 8 == 3.16
+# PHP 8.1 == 3.18
+# PHP 8.2 == 3.18
+ARG ALPINE_VERSION=3.18
+
+FROM aprimediet/alpine:${ALPINE_VERSION}
+LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
+
+ARG PHP_VERSION=81
+ENV PHP_VERSION=${PHP_VERSION}
+ENV PHP_FPM_BIN=php-fpm${PHP_VERSION}
+
+WORKDIR /root
+
+# Add user and group www-data
+RUN mkdir -p /usr/www
+RUN addgroup -g 1010 www-data; exit 0
+RUN adduser -u 1010 -D -H -h /usr/www -G www-data www-data
+RUN adduser www-data tty
+
+# INSTALL PHP APP
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --update \
+    git php${PHP_VERSION} php${PHP_VERSION}-bz2 php${PHP_VERSION}-bcmath php${PHP_VERSION}-common \
+    php${PHP_VERSION}-ctype php${PHP_VERSION}-curl php${PHP_VERSION}-dev \
+    php${PHP_VERSION}-dom php${PHP_VERSION}-embed php${PHP_VERSION}-exif \
+    php${PHP_VERSION}-fpm php${PHP_VERSION}-ftp php${PHP_VERSION}-gd php${PHP_VERSION}-gettext php${PHP_VERSION}-gmp \
+    php${PHP_VERSION}-iconv php${PHP_VERSION}-intl php${PHP_VERSION}-ldap php${PHP_VERSION}-openssl php${PHP_VERSION}-pear \
+    php${PHP_VERSION}-pspell php${PHP_VERSION}-soap \
+    php${PHP_VERSION}-sockets php${PHP_VERSION}-xml php${PHP_VERSION}-xmlreader \
+    php${PHP_VERSION}-xsl php${PHP_VERSION}-zip php${PHP_VERSION}-json php${PHP_VERSION}-phar
+
+# INSTALL PACKAGES AND IGNORE ERRORS WHEN OCURRED
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add \
+    php${PHP_VERSION}-fileinfo php${PHP_VERSION}-session php${PHP_VERSION}-simplexml \
+    php${PHP_VERSION}-tidy php${PHP_VERSION}-tokenizer php${PHP_VERSION}-xmlwriter; exit 0
+
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add \
+    php${PHP_VERSION}-dbg; exit 0
+
+# REMOVE CURRENT POOL FIRST
+RUN rm -rf /etc/php${PHP_VERSION}/php-fpm.d
+
+# COPY CONFIGURATION FILES
+ADD ./etc/php/fpm/php-fpm.conf /etc/php${PHP_VERSION}/php-fpm.conf
+ADD ./etc/php/fpm/pool.d /etc/php/fpm/pool.d 
+ADD ./etc/services.d/php-fpm-alpine /etc/services.d/php-fpm
+
+# CREATE SYMLINKS TO /usr/bin/php IN CASE IT IS NOT EXISTS
+RUN ln -ns /usr/bin/php${PHP_VERSION} /usr/bin/php; exit 0
+
+# DOWNLOAD AND INSTALL COMPOSER
+ADD https://getcomposer.org/installer ./composer-setup.php
+RUN php composer-setup.php && mv composer.phar /usr/local/bin/composer && rm -f ./composer-setup.php
+
+# CLEAN APK CACHES
+RUN rm -vrf /var/cache/apk/*
+
+EXPOSE 9000

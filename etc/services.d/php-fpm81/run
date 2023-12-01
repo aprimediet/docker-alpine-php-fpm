@@ -1,2 +1,0 @@
-#!/command/with-contenv sh
-php-fpm81 -F -O -c /etc/php81/php-fpm.conf

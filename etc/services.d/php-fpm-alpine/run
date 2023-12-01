@@ -1,0 +1,2 @@
+#!/command/with-contenv sh
+php-fpm$PHP_VERSION -F -O -c /etc/php$PHP_VERSION/php-fpm.conf
