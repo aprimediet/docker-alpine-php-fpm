@@ -27,4 +27,4 @@ RUN mkdir -p /var/run/php
 ADD ./etc/php5 /etc/php5
 ADD ./etc/services.d/php-fpm5 /etc/services.d/php-fpm5
 
-EXPOSE 80
+EXPOSE 9000

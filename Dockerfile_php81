@@ -1,7 +1,9 @@
 ARG ALPINE_VERSION=3.18
 
-FROM aprimediet/alpine:${ALPINE_VERSION}
+FROM aprimediet/alpine:${ALPINE_VERSION} AS base
 LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
+
+WORKDIR /root
 
 # Add user and group www-data
 RUN mkdir /usr/www
@@ -10,8 +12,8 @@ RUN adduser -u 1010 -D -H -h /usr/www -G www-data www-data
 RUN adduser www-data tty
 
 # INSTALL php5
-# RUN apk update && apk upgrade && \
-RUN apk add --update --no-cache \
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --update \
     git php81 php81-bz2 php81-bcmath php81-common \
     php81-ctype php81-curl php81-dev \
     php81-dom php81-embed php81-exif php81-fileinfo \
@@ -19,12 +21,22 @@ RUN apk add --update --no-cache \
     php81-iconv php81-intl php81-ldap php81-openssl php81-pear \
     php81-pspell php81-session php81-simplexml php81-snmp php81-soap \
     php81-sockets php81-tidy php81-tokenizer php81-xml php81-xmlreader \
-    php81-xmlwriter php81-xsl php81-zip php81-json
+    php81-xmlwriter php81-xsl php81-zip php81-json php81-phar
+
+# Download composer
+ADD https://getcomposer.org/installer ./composer-setup.php
+
+RUN php81 composer-setup.php && mv composer.phar /usr/local/bin/composer && rm -f composer-setup.php
+
+FROM base AS build
 
 # COPY Configuration File
 RUN mkdir -p /var/run/php
 
 ADD ./etc/php81 /etc/php81
-ADD ./etc/services.d/php-fpm82 /etc/services.d/php-fpm82
+ADD ./etc/services.d/php-fpm81 /etc/services.d/php-fpm81
+
+# Clean APK Cache
+RUN rm -rf /var/cache/apk/*
 
 EXPOSE 9000

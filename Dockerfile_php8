@@ -1,7 +1,9 @@
 ARG ALPINE_VERSION=3.16
 
-FROM aprimediet/alpine:${ALPINE_VERSION}
+FROM aprimediet/alpine:${ALPINE_VERSION} AS base
 LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
+
+WORKDIR /root
 
 # Add user and group www-data
 RUN mkdir /usr/www
@@ -10,8 +12,8 @@ RUN adduser -u 1010 -D -H -h /usr/www -G www-data www-data
 RUN adduser www-data tty
 
 # INSTALL php5
-# RUN apk update && apk upgrade && \
-RUN apk add --update --no-cache \
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --update \
     git php8 php8-bz2 php8-bcmath php8-common \
     php8-ctype php8-curl php8-dev \
     php8-dom php8-embed php8-exif php8-fileinfo \
@@ -19,12 +21,21 @@ RUN apk add --update --no-cache \
     php8-iconv php8-intl php8-ldap php8-openssl php8-pear \
     php8-pspell php8-session php8-simplexml php8-snmp php8-soap \
     php8-sockets php8-tidy php8-tokenizer php8-xml php8-xmlreader \
-    php8-xmlwriter php8-xsl php8-zip php8-dbg php8-json
+    php8-xmlwriter php8-xsl php8-zip php8-dbg php8-json php8-phar
+
+# Download composer
+ADD https://getcomposer.org/installer ./composer-setup.php
+RUN php composer-setup.php && mv composer.phar /usr/local/bin/composer && rm -f composer-setup.php
+
+FROM base AS build
 
 # COPY Configuration File
 RUN mkdir -p /var/run/php
 
 ADD ./etc/php8 /etc/php8
-ADD ./etc/services.d/php-fpm82 /etc/services.d/php-fpm82
+ADD ./etc/services.d/php-fpm8 /etc/services.d/php-fpm8
+
+# Clean APK Cache
+RUN rm -rf /var/cache/apk/*
 
 EXPOSE 9000
