@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apt/archives \
     php${PHP_VERSION}-cgi php${PHP_VERSION}-curl \
     php${PHP_VERSION}-dba php${PHP_VERSION}-dev php${PHP_VERSION}-gd \
     php${PHP_VERSION}-http php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
-    php${PHP_VERSION}-json php${PHP_VERSION}-mbstring php${PHP_VERSION}-memcache \
+    php${PHP_VERSION}-mbstring php${PHP_VERSION}-memcache \
     php${PHP_VERSION}-memcached php${PHP_VERSION}-pspell \
     php${PHP_VERSION}-readline php${PHP_VERSION}-xml \
     php${PHP_VERSION}-xmlrpc php${PHP_VERSION}-zip
@@ -35,6 +35,11 @@ RUN --mount=type=cache,target=/var/cache/apt/archives \
     apt -y install \
     php${PHP_VERSION}-autoload php${PHP_VERSION}-date php${PHP_VERSION}-monolog \
     php${PHP_VERSION}-psr; exit 0
+
+# FAILING ON PHP-8.0
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y install \
+    php${PHP_VERSION}-json; exit 0
 
 # REMOVE CURRENT POOL FIRST
 RUN rm -rf /etc/php/${PHP_VERSION}/fpm/pool.d

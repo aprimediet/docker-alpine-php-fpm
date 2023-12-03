@@ -1,9 +1,9 @@
-ARG PHP_VERSION=8.1
+ARG PHP_VERSION=8.3
 
-FROM aprimediet/php:${UBUNTU_VERSION}
+FROM aprimediet/php:${PHP_VERSION}-ubuntu
 LABEL maintainer="<Muhamad Aditya Prima> aprimediet@gmail.com"
 
-ARG PHP_VERSION=8.1
+ARG PHP_VERSION=8.3
 
 WORKDIR /root
 
@@ -11,7 +11,21 @@ WORKDIR /root
 RUN --mount=type=cache,target=/var/cache/apt/archives \
     apt -y update && apt -y upgrade
 
-# INSTALL BASE DEPENDENCIES
+# INSTALL MYSQL DEPENDENCIES
 RUN --mount=type=cache,target=/var/cache/apt/archives \
     apt -y install \
-    php${PHP_VERSION}-
+    php${PHP_VERSION}-pdo; exit 0
+
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y install \
+    php${PHP_VERSION}-mysql; exit 0
+
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y install \
+    php${PHP_VERSION}-mysqlnd; exit 0
+
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt -y install \
+    php${PHP_VERSION}-mysqli; exit 0
+
+EXPOSE 9000
